@@ -6,67 +6,29 @@ var url = require('url');
 http.createServer(function (req, res) {
     var reqUrl = url.parse(req.url);
     var path = reqUrl.path;
-    console.log(path);
 
-    if (/\.(css)$/.test(path)) {
-        var filepath = (path + '').replace(/\.[0-9]+\.css$/g,'.css');
+    if (/\.(css)$/.test(reqUrl.path)) {
+        getCssFile(reqUrl.path, res);
+    }
+    else if (/\/blog\//.test(path)) {
+        path = path.replace('/blog', '');
+        path = "../entries" + path + ".md";
 
-        var stat = fs.statSync(".." + filepath);
-
-        res.setHeader("Cache-Control", "public, max-age=31536000"); // 1 year
-        res.setHeader("Expires", new Date(Date.now() + 31536000000).toUTCString());
-        res.setHeader("Vary", "Accept-Encoding");
-        res.setHeader('Last-Modified', stat.mtime);
-        res.writeHead(200, {'Content-Type': 'text/css'});
-
-        res.write(fs.readFileSync(".." + filepath));
-        res.end();
-
-    } else if (/\/blog\//.test(path)) {
-        path = path.replace('/blog','');
-        var path = "../entries" + path + ".md";
 
         if (!fs.existsSync(path)) {
-            res.writeHead(404, {'Content-Type': 'text/html'});
-            res.end("404, not found :(");
+            res.writeHead(404, {'Conten-Type': 'text/html'});
+            res.end("yolo bitch");
         } else {
-            var layout;
-            res.writeHead(200, {'Content-Type': 'text/html'});
+            var article = getArticle(path);
 
-            fs.readFile("../layout/layout.html", function (err, data) {
-                if (err) {
-                    throw err;
-                }
-
-                fs.readFile(path, function (err, data) {
-                    if (err) {
-                        throw err;
-                    }
-
-                    data = data.toString();
-                    var regex = /([^|]*)\n\|\|*/;
-                    var informations = parseMetaData(data);
-                    if(informations != null) {
-                        for (var k in informations) {
-                            if (informations.hasOwnProperty(k)) {
-
-                                var key = k.toUpperCase();
-                                layout = layout.replace("%"+key+"%",informations[k]);
-                            }
-                        }
-                    }
-                    var content = marked(data.replace(regex, ''));
-                    var layout = infuseLayout(content);
-                    layout = layout.replace("%TITLE%", path);
-                    res.end(layout);
-                });
-            });
+            echoHTML(article, res);
         }
-    } else if(path == "/") {
+
+    } else if (path == "/") {
         var lastEntries = getLastEntries(5);
         res.writeHead(404, {'Content-Type': 'text/html'});
         var content = "";
-        for(var i = 0; i<lastEntries.length;++i) {
+        for (var i = 0; i < lastEntries.length; ++i) {
             content += marked(fs.readFileSync(lastEntries[i].path).toString()) + "<hr>";
         }
         res.end(infuseLayout(content));
@@ -74,6 +36,7 @@ http.createServer(function (req, res) {
         res.writeHead(404, {'Content-Type': 'text/html'});
         res.end("404, not found :(");
     }
+
 }).listen(8000);
 
 
@@ -115,16 +78,16 @@ function infuseLayout(content) {
 function parseMetaData(article) {
     var regex = /([^|]*)\n\|\|*/;
     var informations = article.match(regex);
-    if(informations == null) return null;
+    if (informations == null) return null;
 
     informations = informations[1];
     var rows = informations.split("\n");
     var data = {};
-    for(var i=0;i<rows.length;++i) {
+    for (var i = 0; i < rows.length; ++i) {
         var key = rows[i].match(/^([a-z]+)/);
         key = key[0];
         var index = rows[i].indexOf(":");
-        var value = rows[i].substring(index+1);
+        var value = rows[i].substring(index + 1);
         data[key] = value;
     }
     return data;
@@ -140,12 +103,60 @@ function getLastEntries(count) {
     var data = [];
     for (var i = 0; i < entries.length; ++i) {
         var metaData = getMetaData("../entries/" + entries[i]);
-        data.push({ created: metaData.created, path : "../entries/" + entries[i] });
+        data.push({ created: metaData.created, path: "../entries/" + entries[i] });
     }
 
-    data.sort(function(a,b) {
+    data.sort(function (a, b) {
         return a.created < b.created;
     });
 
     return data;
 }
+
+
+function getCssFile(path, res) {
+    var filepath = (path + '').replace(/\.[0-9]+\.css$/g, '.css');
+
+    var stat = fs.statSync(".." + filepath);
+
+    res.setHeader("Cache-Control", "public, max-age=31536000"); // 1 year
+    res.setHeader("Expires", new Date(Date.now() + 31536000000).toUTCString());
+    res.setHeader("Vary", "Accept-Encoding");
+    res.setHeader('Last-Modified', stat.mtime);
+    res.writeHead(200, {'Content-Type': 'text/css'});
+
+    res.write(fs.readFileSync(".." + filepath));
+    res.end();
+
+}
+
+
+function getArticle(path) {
+    var htmlData = fs.readFileSync("../layout/layout.html").toString();
+    var layout = htmlData;
+
+    var mdData = fs.readFileSync(path).toString();
+
+    var regex = /([^|]*)\n\|\|*/;
+    var content = marked(mdData.replace(regex, ''));
+    layout = infuseLayout(content);
+
+    var informations = parseMetaData(mdData);
+    if (informations != null) {
+        for (var k in informations) {
+            if (informations.hasOwnProperty(k)) {
+                var key = k.toUpperCase();
+                layout = layout.replace("%" + key + "%", informations[k]);
+            }
+        }
+    }
+    layout = layout.replace("%TITLE%", path.substring(1));
+
+    return layout;
+}
+
+function echoHTML(str, res) {
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    res.end(str);
+}
+
