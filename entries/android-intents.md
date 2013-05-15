@@ -25,5 +25,4 @@ Java ist eigentlich eine Programmiersprache, die den Programmierer per Fehlermel
 Leider hat sich die App immer aufgehangen ohne eine Fehlermeldung zu werfen.
 Die Lösung des Problems war beim Item das Interface Serializable zu implementieren. Weil alle Objekte in putExtra Serializable implementieren müssen auch wenn diese nur in einem übergebenen Objekt als Variable vorhanden sind.
 
-
-
+<p>%AUTHOR%</p>

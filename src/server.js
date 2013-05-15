@@ -58,6 +58,7 @@ http.createServer(function (req, res) {
                     layout = layout.replace("%MENU%", links);
                     layout = layout.replace("%CONTENT%", content);
                     layout = layout.replace("%TITLE%", reqUrl.path.substring(1));
+
                     for (var k in informations) {
                         if (informations.hasOwnProperty(k)) {
 
@@ -104,9 +105,7 @@ function getMetaData(str) {
         var value = rows[i].substring(index+1);
         data[key] = value;
     }
-
     return data;
-
 }
 
 
