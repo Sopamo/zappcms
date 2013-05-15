@@ -7,75 +7,25 @@ http.createServer(function (req, res) {
     var reqUrl = url.parse(req.url);
     var path = reqUrl.path;
 
-    if (/\.(css)$/.test(path)) {
-        var filepath = (path + '').replace(/\.[0-9]+\.css$/g,'.css');
+    if (/\.(css)$/.test(reqUrl.path)) {
+        getCssFile(reqUrl.path, res);
+    }
+    else if (/\/blog\//.test(path)) {
+        path = path.replace('/blog', '');
+        path = "../entries" + path + ".md";
 
-        var stat = fs.statSync(".." + filepath);
-
-        res.setHeader("Cache-Control", "public, max-age=31536000"); // 1 year
-        res.setHeader("Expires", new Date(Date.now() + 31536000000).toUTCString());
-        res.setHeader("Vary", "Accept-Encoding");
-        res.setHeader('Last-Modified', stat.mtime);
-        res.writeHead(200, {'Content-Type': 'text/css'});
-
-        res.write(fs.readFileSync(".." + filepath));
-        res.end();
-
-    } else if (/\/blog\//.test(path)) {
-        path = path.replace('/blog','');
-        console.log(path);
-        var path = "../entries" + path + ".md";
 
         if (!fs.existsSync(path)) {
             res.writeHead(404, {'Conten-Type': 'text/html'});
             res.end("yolo bitch");
         } else {
-            var layout;
-            res.writeHead(200, {'Content-Type': 'text/html'});
+            var article = getArticle(path);
 
-            fs.readFile("../layout/layout.html", function (err, data) {
-                if (err) {
-                    throw err;
-                }
-                layout = data.toString();
-                var entries = fs.readdirSync("../entries");
-                var links = "";
-                for (var i = 0; i < entries.length; ++i) {
-                    var entryName = entries[i].substring(0, entries[i].length - 3);
-                    var name = entryName.replace("-", " ");
-
-                    links += '<li><a class="'+(("/"+entryName == path) ? "active" : "")+'" href="/blog/' + entryName + '">' + ucwords(name) + '</a></li>';
-                }
-                fs.readFile(path, function (err, data) {
-                    if (err) {
-                        throw err;
-                    }
-
-                    data = data.toString();
-                    var regex = /([^|]*)\n\|\|*/;
-                    var informations = data.match(regex);
-                    if(informations != null) {
-                        informations = informations[1];
-                        informations = getMetaData(informations);
-                        for (var k in informations) {
-                            if (informations.hasOwnProperty(k)) {
-
-                                var key = k.toUpperCase();
-                                layout = layout.replace("%"+key+"%",informations[k]);
-                            }
-                        }
-                    }
-                    var content = marked(data.replace(regex, ''));
-
-                    layout = layout.replace("%MENU%", links);
-                    layout = layout.replace("%CONTENT%", content);
-                    layout = layout.replace("%TITLE%", path.substring(1));
-                    layout = layout.replace("%DISQUS%", fs.readFileSync("../layout/disqus.html").toString());
-
-                    res.end(layout);
-                });
-            });
+            echoHTML(article, res);
         }
+
+    } else if (/\//.test(path)){
+        echoHTML("yolo", res);
 
     }
 
@@ -104,15 +54,80 @@ function ucwords(str) {
 function getMetaData(str) {
     var rows = str.split("\n");
     var data = {};
-    for(var i=0;i<rows.length;++i) {
+    for (var i = 0; i < rows.length; ++i) {
         var key = rows[i].match(/^([a-z]+)/);
         key = key[0];
         var index = rows[i].indexOf(":");
-        var value = rows[i].substring(index+1);
+        var value = rows[i].substring(index + 1);
         data[key] = value;
     }
 
     return data;
+
+}
+
+function getCssFile(path, res) {
+    var filepath = (path + '').replace(/\.[0-9]+\.css$/g, '.css');
+
+    var stat = fs.statSync(".." + filepath);
+
+    res.setHeader("Cache-Control", "public, max-age=31536000"); // 1 year
+    res.setHeader("Expires", new Date(Date.now() + 31536000000).toUTCString());
+    res.setHeader("Vary", "Accept-Encoding");
+    res.setHeader('Last-Modified', stat.mtime);
+    res.writeHead(200, {'Content-Type': 'text/css'});
+
+    res.write(fs.readFileSync(".." + filepath));
+    res.end();
+
+}
+
+
+function getArticle(path) {
+
+    var layout = "";
+
+
+    var htmlData = fs.readFileSync("../layout/layout.html").toString()
+    layout = htmlData;
+    var entries = fs.readdirSync("../entries");
+    var links = "";
+    for (var i = 0; i < entries.length; ++i) {
+        var entryName = entries[i].substring(0, entries[i].length - 3);
+        var name = entryName.replace("-", " ");
+
+        links += '<li><a class="' + (("/" + entryName == path) ? "active" : "") + '" href="/blog/' + entryName + '">' + ucwords(name) + '</a></li>';
+    }
+
+    var mdData = fs.readFileSync(path).toString();
+
+    var regex = /([^|]*)\n\|\|*/;
+    var informations = mdData.match(regex);
+    if (informations != null) {
+        informations = informations[1];
+        informations = getMetaData(informations);
+        for (var k in informations) {
+            if (informations.hasOwnProperty(k)) {
+
+                var key = k.toUpperCase();
+                layout = layout.replace("%" + key + "%", informations[k]);
+            }
+        }
+    }
+    var content = marked(mdData.replace(regex, ''));
+
+    layout = layout.replace("%MENU%", links);
+    layout = layout.replace("%CONTENT%", content);
+    layout = layout.replace("%TITLE%", path.substring(1));
+    layout = layout.replace("%DISQUS%", fs.readFileSync("../layout/disqus.html").toString());
+
+    return layout;
+
+}
+
+function echoHTML(str, res) {
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    res.end(str);
 
 }
 
