@@ -6,6 +6,7 @@ var url = require('url');
 http.createServer(function (req, res) {
     var reqUrl = url.parse(req.url);
     var path = reqUrl.path;
+    console.log(path);
 
     if (/\.(css)$/.test(path)) {
         var filepath = (path + '').replace(/\.[0-9]+\.css$/g,'.css');
@@ -23,12 +24,11 @@ http.createServer(function (req, res) {
 
     } else if (/\/blog\//.test(path)) {
         path = path.replace('/blog','');
-        console.log(path);
         var path = "../entries" + path + ".md";
 
         if (!fs.existsSync(path)) {
-            res.writeHead(404, {'Conten-Type': 'text/html'});
-            res.end("yolo bitch");
+            res.writeHead(404, {'Content-Type': 'text/html'});
+            res.end("404, not found :(");
         } else {
             var layout;
             res.writeHead(200, {'Content-Type': 'text/html'});
@@ -37,15 +37,7 @@ http.createServer(function (req, res) {
                 if (err) {
                     throw err;
                 }
-                layout = data.toString();
-                var entries = fs.readdirSync("../entries");
-                var links = "";
-                for (var i = 0; i < entries.length; ++i) {
-                    var entryName = entries[i].substring(0, entries[i].length - 3);
-                    var name = entryName.replace("-", " ");
 
-                    links += '<li><a class="'+(("/"+entryName == path) ? "active" : "")+'" href="/blog/' + entryName + '">' + ucwords(name) + '</a></li>';
-                }
                 fs.readFile(path, function (err, data) {
                     if (err) {
                         throw err;
@@ -53,10 +45,8 @@ http.createServer(function (req, res) {
 
                     data = data.toString();
                     var regex = /([^|]*)\n\|\|*/;
-                    var informations = data.match(regex);
+                    var informations = parseMetaData(data);
                     if(informations != null) {
-                        informations = informations[1];
-                        informations = getMetaData(informations);
                         for (var k in informations) {
                             if (informations.hasOwnProperty(k)) {
 
@@ -66,19 +56,24 @@ http.createServer(function (req, res) {
                         }
                     }
                     var content = marked(data.replace(regex, ''));
-
-                    layout = layout.replace("%MENU%", links);
-                    layout = layout.replace("%CONTENT%", content);
-                    layout = layout.replace("%TITLE%", path.substring(1));
-                    layout = layout.replace("%DISQUS%", fs.readFileSync("../layout/disqus.html").toString());
-
+                    var layout = infuseLayout(content);
+                    layout = layout.replace("%TITLE%", path);
                     res.end(layout);
                 });
             });
         }
-
+    } else if(path == "/") {
+        var lastEntries = getLastEntries(5);
+        res.writeHead(404, {'Content-Type': 'text/html'});
+        var content = "";
+        for(var i = 0; i<lastEntries.length;++i) {
+            content += marked(fs.readFileSync(lastEntries[i].path).toString()) + "<hr>";
+        }
+        res.end(infuseLayout(content));
+    } else {
+        res.writeHead(404, {'Content-Type': 'text/html'});
+        res.end("404, not found :(");
     }
-
 }).listen(8000);
 
 
@@ -97,12 +92,33 @@ function ucwords(str) {
     return (str + '').replace(/^([a-z\u00E0-\u00FC])|\s+([a-z\u00E0-\u00FC])/g, function ($1) {
         return $1.toUpperCase();
     });
-
-
 }
 
-function getMetaData(str) {
-    var rows = str.split("\n");
+function infuseLayout(content) {
+    var layout = fs.readFileSync("../layout/layout.html").toString();
+    var entries = fs.readdirSync("../entries");
+    var links = "";
+    for (var i = 0; i < entries.length; ++i) {
+        var entryName = entries[i].substring(0, entries[i].length - 3);
+        var name = entryName.replace("-", " ");
+
+        links += '<li><a href="/blog/' + entryName + '">' + ucwords(name) + '</a></li>';
+    }
+
+    layout = layout.replace("%MENU%", links);
+    layout = layout.replace("%CONTENT%", content);
+    layout = layout.replace("%DISQUS%", fs.readFileSync("../layout/disqus.html").toString());
+
+    return layout;
+}
+
+function parseMetaData(article) {
+    var regex = /([^|]*)\n\|\|*/;
+    var informations = article.match(regex);
+    if(informations == null) return null;
+
+    informations = informations[1];
+    var rows = informations.split("\n");
     var data = {};
     for(var i=0;i<rows.length;++i) {
         var key = rows[i].match(/^([a-z]+)/);
@@ -111,9 +127,25 @@ function getMetaData(str) {
         var value = rows[i].substring(index+1);
         data[key] = value;
     }
-
     return data;
-
 }
 
+function getMetaData(file) {
+    var data = fs.readFileSync(file).toString();
+    return parseMetaData(data);
+}
 
+function getLastEntries(count) {
+    var entries = fs.readdirSync("../entries");
+    var data = [];
+    for (var i = 0; i < entries.length; ++i) {
+        var metaData = getMetaData("../entries/" + entries[i]);
+        data.push({ created: metaData.created, path : "../entries/" + entries[i] });
+    }
+
+    data.sort(function(a,b) {
+        return a.created < b.created;
+    });
+
+    return data;
+}

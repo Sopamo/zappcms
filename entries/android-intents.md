@@ -1,4 +1,5 @@
 author:Paul Mohr, Stefan Mayer
+created:2013-05-15 23:00
 ||||||||||||||||||||||||||||||
 
 Fehlende Fehlermeldung bei Intents in Android
