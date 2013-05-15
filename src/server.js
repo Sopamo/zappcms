@@ -58,6 +58,7 @@ http.createServer(function (req, res) {
                     layout = layout.replace("%MENU%", links);
                     layout = layout.replace("%CONTENT%", content);
                     layout = layout.replace("%TITLE%", reqUrl.path.substring(1));
+                    layout = layout.replace("%DISQUS%",fs.readFileSync("../layout/disqus.html",{encoding: "utf-8"}));
 
                     for (var k in informations) {
                         if (informations.hasOwnProperty(k)) {
