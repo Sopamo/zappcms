@@ -5,9 +5,10 @@ var url = require('url');
 
 http.createServer(function (req, res) {
     var reqUrl = url.parse(req.url);
+    var path = reqUrl.path;
 
-    if (/\.(css)$/.test(reqUrl.path)) {
-        var filepath = (reqUrl.path + '').replace(/\.[0-9]+\.css$/g,'.css');
+    if (/\.(css)$/.test(path)) {
+        var filepath = (path + '').replace(/\.[0-9]+\.css$/g,'.css');
 
         var stat = fs.statSync(".." + filepath);
 
@@ -20,8 +21,10 @@ http.createServer(function (req, res) {
         res.write(fs.readFileSync(".." + filepath));
         res.end();
 
-    } else {
-        var path = "../entries" + reqUrl.path + ".md";
+    } else if (/\/blog\//.test(path)) {
+        path = path.replace('/blog','');
+        console.log(path);
+        var path = "../entries" + path + ".md";
 
         if (!fs.existsSync(path)) {
             res.writeHead(404, {'Conten-Type': 'text/html'});
@@ -41,7 +44,7 @@ http.createServer(function (req, res) {
                     var entryName = entries[i].substring(0, entries[i].length - 3);
                     var name = entryName.replace("-", " ");
 
-                    links += '<li><a class="'+(("/"+entryName == reqUrl.path) ? "active" : "")+'" href="/' + entryName + '">' + ucwords(name) + '</a></li>';
+                    links += '<li><a class="'+(("/"+entryName == path) ? "active" : "")+'" href="/blog/' + entryName + '">' + ucwords(name) + '</a></li>';
                 }
                 fs.readFile(path, function (err, data) {
                     if (err) {
@@ -66,7 +69,7 @@ http.createServer(function (req, res) {
 
                     layout = layout.replace("%MENU%", links);
                     layout = layout.replace("%CONTENT%", content);
-                    layout = layout.replace("%TITLE%", reqUrl.path.substring(1));
+                    layout = layout.replace("%TITLE%", path.substring(1));
                     layout = layout.replace("%DISQUS%", fs.readFileSync("../layout/disqus.html").toString());
 
                     res.end(layout);
