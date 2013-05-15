@@ -1,4 +1,4 @@
 zappcms
 =======
 
-A tiny, tiny, tiny! nginx cms
+A tiny, tiny, tiny! node.js cms
