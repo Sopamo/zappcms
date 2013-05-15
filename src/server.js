@@ -49,24 +49,26 @@ http.createServer(function (req, res) {
                     }
 
                     data = data.toString();
-                    var index = data.indexOf("\n\n");
-                    var informations = data.substring(0,index);
-                    informations = getMetaData(informations);
+                    var regex = /([^|]*)\n\|\|*/;
+                    var informations = data.match(regex);
+                    if(informations != null) {
+                        informations = informations[1];
+                        informations = getMetaData(informations);
+                        for (var k in informations) {
+                            if (informations.hasOwnProperty(k)) {
 
-                    var content = marked(data.substring(index));
+                                var key = k.toUpperCase();
+                                layout = layout.replace("%"+key+"%",informations[k]);
+                            }
+                        }
+                    }
+                    var content = marked(data.replace(regex, ''));
 
                     layout = layout.replace("%MENU%", links);
                     layout = layout.replace("%CONTENT%", content);
                     layout = layout.replace("%TITLE%", reqUrl.path.substring(1));
                     layout = layout.replace("%DISQUS%", fs.readFileSync("../layout/disqus.html").toString());
 
-                    for (var k in informations) {
-                        if (informations.hasOwnProperty(k)) {
-
-                            var key = k.toUpperCase();
-                            layout = layout.replace("%"+key+"%",informations[k]);
-                        }
-                    }
                     res.end(layout);
                 });
             });
@@ -106,7 +108,9 @@ function getMetaData(str) {
         var value = rows[i].substring(index+1);
         data[key] = value;
     }
+
     return data;
+
 }
 
 
