@@ -7,11 +7,17 @@ http.createServer(function (req, res) {
     var reqUrl = url.parse(req.url);
 
     if (/\.(css)$/.test(reqUrl.path)) {
-        res.setHeader("Cache-Control", "public, max-age=345600"); // 4 days
-        res.setHeader("Expires", new Date(Date.now() + 345600000).toUTCString());
+        var filepath = (reqUrl.path + '').replace(/\.[0-9]+\.css$/g,'.css');
+
+        var stat = fs.statSync(".." + filepath);
+
+        res.setHeader("Cache-Control", "public, max-age=31536000"); // 1 year
+        res.setHeader("Expires", new Date(Date.now() + 31536000000).toUTCString());
+        res.setHeader("Vary", "Accept-Encoding");
+        res.setHeader('Last-Modified', stat.mtime);
         res.writeHead(200, {'Content-Type': 'text/css'});
 
-        res.write(fs.readFileSync(".." + reqUrl.path));
+        res.write(fs.readFileSync(".." + filepath));
         res.end();
 
     } else {
