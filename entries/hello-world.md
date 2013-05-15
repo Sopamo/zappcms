@@ -15,7 +15,7 @@ Java ist eigentlich eine Programmiersprache, die den Programmierer per Fehlermel
     
     class startActivity extends Activity {
         public void onCreate(Bundle s) {
-            super(s);
+            super.onCreate(s);
             Intent intent = new Intent(Bla.class,this);
             intent.putExtra("Bla",new Test());
             startActivity(intent);
