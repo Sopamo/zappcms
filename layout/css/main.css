@@ -1,0 +1,75 @@
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+#header {
+    width: 100%;
+    padding: 40px 0;
+    background: #9D5FB1;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+#header:after {
+    content:"";
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 100px;
+    width: 100%;
+    background: #9D5FB1;
+    height: 30px;
+    -webkit-transform: matrix(1, -0.016, 0.003, 1.004, 0, 0);
+    -moz-transform: matrix(1, -0.016, 0.003, 1.004, 0px, 0px);
+    -ms-transform: matrix(1, -0.016, 0.003, 1.004, 0, 0);
+    -o-transform: matrix(1, -0.016, 0.003, 1.004, 0, 0);
+    transform: matrix(1, -0.016, 0.003, 1.004, 0, 0);
+}
+
+#header h1 {
+    margin: 0;
+    padding-left: 40px;
+    color: white;
+}
+
+#wrapper {
+    width: 800px;
+    margin: auto;
+}
+
+#content {
+    width: 600px;
+    float: left;
+}
+
+#submenu {
+    width: 200px;
+    float: left;
+}
+
+#submenu ul li {
+    padding: 0;
+    margin: 0;
+}
+
+#submenu ul li a {
+    padding: 10px;
+    background: #9D5FB1;
+    display: inline-block;
+    margin-bottom: 10px;
+    text-decoration: none;
+    width: 100%;
+    color: white;
+}
+
+#submenu ul li a:hover, #submenu ul li a.active {
+    background: #F9C03A;
+}
+
+footer {
+    border-top: 1px solid #dedede;
+    margin-top: 50px;
+    padding-top: 10px;
+    padding-bottom: 20px;
+}

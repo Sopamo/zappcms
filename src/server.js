@@ -35,15 +35,30 @@ http.createServer(function (req, res) {
                     var entryName = entries[i].substring(0, entries[i].length - 3);
                     var name = entryName.replace("-", " ");
 
-                    links += '<li><a href="/' + entryName + '">' + ucwords(name) + '</a></li>';
+                    links += '<li><a class="'+(("/"+entryName == reqUrl.path) ? "active" : "")+'" href="/' + entryName + '">' + ucwords(name) + '</a></li>';
                 }
                 fs.readFile(path, function (err, data) {
                     if (err) {
                         throw err;
                     }
+
+                    data = data.toString();
+                    var index = data.indexOf("\n\n");
+                    var informations = data.substring(0,index);
+                    informations = getMetaData(informations);
+
+                    var content = marked(data.substring(index));
+
                     layout = layout.replace("%MENU%", links);
-                    layout = layout.replace("%CONTENT%", marked(data.toString()));
+                    layout = layout.replace("%CONTENT%", content);
                     layout = layout.replace("%TITLE%", reqUrl.path.substring(1));
+                    for (var k in informations) {
+                        if (informations.hasOwnProperty(k)) {
+
+                            var key = k.toUpperCase();
+                            layout = layout.replace("%"+key+"%",informations[k]);
+                        }
+                    }
                     res.end(layout);
                 });
             });
@@ -70,6 +85,21 @@ function ucwords(str) {
         return $1.toUpperCase();
     });
 
+
+}
+
+function getMetaData(str) {
+    var rows = str.split("\n");
+    var data = {};
+    for(var i=0;i<rows.length;++i) {
+        var key = rows[i].match(/^([a-z]+)/);
+        key = key[0];
+        var index = rows[i].indexOf(":");
+        var value = rows[i].substring(index+1);
+        data[key] = value;
+    }
+
+    return data;
 
 }
 

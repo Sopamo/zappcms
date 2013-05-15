@@ -8,11 +8,25 @@
 <meta name="viewport" content="width=device-width">
 
 <link rel="stylesheet" href="layout/css/normalize.css">
+<link rel="stylesheet" href="layout/css/main.css">
 </head>
 <body>
-	<ul>
-		%MENU%
-	</ul>
-	%CONTENT%
+    <div id="header"><h1>Papaya Fiction</h1></div>
+    <div id="wrapper">
+        <div id="content">
+            %CONTENT%
+        </div>
+
+        <nav id="submenu">
+            <ul>
+                %MENU%
+            </ul>
+        </nav>
+        <div id="informations">
+            <p>%AUTHOR%</p>
+        </div>
+        <br style="clear:both;">
+        <footer><a href="/pages/impressum">Impressum</a></footer>
+    </div>
 </body>
 </html>
