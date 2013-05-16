@@ -40,7 +40,7 @@ http.createServer(function (req, res) {
 
         }
         var layout = infuseLayout(content);
-        layout = layout.replace("%TITLE%","Zapcms Blog");
+        layout = layout.replace("%TITLE%","Zappcms Blog");
         res.end(layout);
     } else if(/^\/archiv\/[0-9]{4}-[0-9]{2}$/.test(reqUrl.path)) {
         var date = reqUrl.path.substring(8);
@@ -57,7 +57,7 @@ http.createServer(function (req, res) {
             content += getExcerpt(entry, articleSlug) + "<hr>";
         }
         var layout = infuseLayout(content);
-        layout = layout.replace("%TITLE%","Zapcms Archiv "+date);
+        layout = layout.replace("%TITLE%","Zappcms Archiv "+date);
         res.end(layout);
     } else {
         res.writeHead(404, {'Content-Type': 'text/html; charset=utf-8'});
