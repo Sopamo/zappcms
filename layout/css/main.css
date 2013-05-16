@@ -7,7 +7,7 @@ html, body {
     width: 100%;
     padding: 40px 0;
     background: #9D5FB1;
-    margin-bottom: 20px;
+    margin-bottom: 40px;
     position: relative;
 }
 
@@ -30,7 +30,11 @@ html, body {
 #header h1 {
     margin: 0;
     padding-left: 40px;
+}
+
+#header h1 a {
     color: white;
+    text-decoration: none;
 }
 
 #wrapper {
@@ -46,6 +50,17 @@ html, body {
 #submenu {
     width: 200px;
     float: left;
+}
+
+#content h1 a {
+    background: rgb(194, 158, 206);
+    color: white;
+    text-decoration: none;
+    padding: 5px 5px;
+}
+
+#content h1 a:hover {
+    background: #9D5FB1;
 }
 
 #submenu ul li {
