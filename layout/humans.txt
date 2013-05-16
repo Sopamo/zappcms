@@ -1,0 +1,10 @@
+/* TEAM */
+    Lead: Paul Mohr
+    Web: http://sopamo.de
+    Twitter: @Sopamo
+
+/* SITE */
+    Node.js Server
+    Doctype:HTML5
+    normalize.css
+    IDE: PhpStorm

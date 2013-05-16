@@ -12,10 +12,11 @@ http.createServer(function (req, res) {
         getCssFile(reqUrl.path, res);
     } else if(/\.(js)$/.test(reqUrl.path)) {
         getJsFile(reqUrl.path, res);
-    } else if (/\/blog\//.test(path)) {
+    } else if (/\.(txt)$/.test(reqUrl.path)) {
+        getTxtFile(reqUrl.path, res);
+    } else if (/^\/blog\/[a-z0-9-]*$/.test(path)) {
         path = path.replace('/blog', '');
         path = "../entries" + path + ".md";
-
 
         if (!fs.existsSync(path)) {
             res.writeHead(404, {'Conten-Type': 'text/html; charset=utf-8'});
@@ -25,7 +26,6 @@ http.createServer(function (req, res) {
 
             echoHTML(article, res);
         }
-
     } else if (path == "/") {
         var lastEntries = getLastEntries(5);
         res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
@@ -226,6 +226,20 @@ function getCssFile(path, res) {
     content = cleanCSS.process(content);
 
     res.write(content);
+    res.end();
+}
+
+function getTxtFile(path, res) {
+
+    var stat = fs.statSync("../layout" + path);
+
+    res.setHeader("Cache-Control", "public, max-age=345600"); // 1 year
+    res.setHeader("Expires", new Date(Date.now() + 345600000).toUTCString());
+    res.setHeader("Vary", "Accept-Encoding");
+    res.setHeader('Last-Modified', stat.mtime);
+    res.writeHead(200, {'Content-Type': 'text/plain; charset=utf-8'});
+
+    res.write(fs.readFileSync("../layout" + path));
     res.end();
 }
 
