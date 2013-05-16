@@ -28,7 +28,7 @@ http.createServer(function (req, res) {
 
     } else if (path == "/") {
         var lastEntries = getLastEntries(5);
-        res.writeHead(404, {'Content-Type': 'text/html; charset=utf-8'});
+        res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
         var content = "";
         for (var i = 0; i < lastEntries.length; ++i) {
             var data = fs.readFileSync(lastEntries[i].path).toString();
@@ -38,6 +38,22 @@ http.createServer(function (req, res) {
             entry = insertMetaData(entry,informations);
             content += getExcerpt(entry, articleSlug) + "<hr>";
         }
+        res.end(infuseLayout(content));
+    } else if(/^\/archiv\/[0-9]{4}-[0-9]{2}$/.test(reqUrl.path)) {
+        var date = reqUrl.path.substring(8);
+        var articles = getArticlesInMonth(date);
+
+        res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+        var content = "";
+        for (var i = 0; i < articles.length; ++i) {
+            var data = articles[i];
+            var articleSlug = articles[i].name.substring(0, articles[i].name.length - 3);
+            var informations = parseMetaData(data.content);
+            var entry = getRealContent(data.content);
+            entry = insertMetaData(entry, informations);
+            content += getExcerpt(entry, articleSlug) + "<hr>";
+        }
+
         res.end(infuseLayout(content));
     } else {
         res.writeHead(404, {'Content-Type': 'text/html; charset=utf-8'});
@@ -66,13 +82,10 @@ function ucwords(str) {
 
 function infuseLayout(content) {
     var layout = fs.readFileSync("../layout/layout.html").toString();
-    var entries = fs.readdirSync("../entries");
+    var months = getArticleMonths();
     var links = "";
-    for (var i = 0; i < entries.length; ++i) {
-        var entryName = entries[i].substring(0, entries[i].length - 3);
-        var name = entryName.replace("-", " ");
-
-        links += '<li><a href="/blog/' + entryName + '">' + ucwords(name) + '</a></li>';
+    for(var i=0;i<months.length;++i) {
+        links += '<li><a href="/archiv/'+months[i]+'">'+months[i]+'</a></li>';
     }
 
     layout = layout.replace("%MENU%", links);
@@ -81,6 +94,46 @@ function infuseLayout(content) {
 
     return layout;
 }
+
+function getArticleMonths() {
+    var entries = fs.readdirSync("../entries");
+    var months = [];
+    for (var i = 0; i < entries.length; ++i) {
+        var path = "../entries/" + entries[i];
+        var datas = getMetaDataFromFile(path);
+        var date = datas.created.split("-");
+        var month = date[1];
+        var year = date[0];
+        var menuString = year + "-" + month;
+        if (months.indexOf(menuString) == -1) {
+            months.push(menuString);
+        }
+    }
+
+    return months;
+}
+
+function getArticlesInMonth(yearMonth) {
+    var entries = fs.readdirSync("../entries");
+    var articles = [];
+    for (var i = 0; i < entries.length; ++i) {
+        var path = "../entries/" + entries[i];
+        var wholeFile = fs.readFileSync(path).toString();
+        var datas = parseMetaData(wholeFile);
+        var date = datas.created.split("-");
+        var month = date[1];
+        var year = date[0];
+        var menuString = year + "-" + month;
+
+        if(menuString == yearMonth) {
+            articles.push({name:entries[i],content:wholeFile});
+        }
+    }
+
+    return articles;
+}
+
+
 
 function parseMetaData(article) {
     var regex = /([^|]*)\n\|\|*/;
@@ -131,6 +184,8 @@ function getLastEntries(count) {
         return a.created < b.created;
     });
 
+    data = data.slice(0,count);
+
     return data;
 }
 
@@ -166,8 +221,10 @@ function getCssFile(path, res) {
     res.setHeader("Vary", "Accept-Encoding");
     res.setHeader('Last-Modified', stat.mtime);
     res.writeHead(200, {'Content-Type': 'text/css; charset=utf-8'});
+
     var content = fs.readFileSync(".." + filepath).toString();
     content = cleanCSS.process(content);
+
     res.write(content);
     res.end();
 }
