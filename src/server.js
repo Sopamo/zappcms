@@ -10,7 +10,7 @@ http.createServer(function (req, res) {
 
     if (/\.(css)$/.test(reqUrl.path)) {
         getCssFile(reqUrl.path, res);
-    } else if(/\.(js)$/.test(reqUrl.path)) {
+    } else if (/\.(js)$/.test(reqUrl.path)) {
         getJsFile(reqUrl.path, res);
     } else if (/\.(txt)$/.test(reqUrl.path)) {
         getTxtFile(reqUrl.path, res);
@@ -20,11 +20,23 @@ http.createServer(function (req, res) {
 
         if (!fs.existsSync(path)) {
             res.writeHead(404, {'Conten-Type': 'text/html; charset=utf-8'});
-            res.end("yolo bitch");
+            res.end("404, not found :(");
         } else {
             var article = getArticle(path);
 
             echoHTML(article, res);
+        }
+    } else if (/^\/p\/[a-z0-9-]*$/.test(path)) {
+        path = path.replace('/p', '');
+        path = "../pages" + path + ".md";
+
+        if (!fs.existsSync(path)) {
+            res.writeHead(404, {'Conten-Type': 'text/html; charset=utf-8'});
+            res.end("404, not found :(");
+        } else {
+            var page = getPage(path);
+
+            echoHTML(page, res);
         }
     } else if (path == "/") {
         var lastEntries = getLastEntries(5);
@@ -35,14 +47,14 @@ http.createServer(function (req, res) {
             var articleSlug = lastEntries[i].name.substring(0, lastEntries[i].name.length - 3);
             var informations = parseMetaData(data);
             var entry = getRealContent(data);
-            entry = insertMetaData(entry,informations);
+            entry = insertMetaData(entry, informations);
             content += getExcerpt(entry, articleSlug) + "<hr>";
 
         }
         var layout = infuseLayout(content);
-        layout = layout.replace("%TITLE%","Zappcms Blog");
+        layout = layout.replace("%TITLE%", "Zappcms Blog");
         res.end(layout);
-    } else if(/^\/archiv\/[0-9]{4}-[0-9]{2}$/.test(reqUrl.path)) {
+    } else if (/^\/archiv\/[0-9]{4}-[0-9]{2}$/.test(reqUrl.path)) {
         var date = reqUrl.path.substring(8);
         var articles = getArticlesInMonth(date);
 
@@ -57,9 +69,9 @@ http.createServer(function (req, res) {
             content += getExcerpt(entry, articleSlug) + "<hr>";
         }
         var layout = infuseLayout(content);
-        layout = layout.replace("%TITLE%","Zappcms Archiv "+date);
+        layout = layout.replace("%TITLE%", "Zappcms Archiv " + date);
         res.end(layout);
-    } else if(/^\/gitpull$/.test(reqUrl.path)) {
+    } else if (/^\/gitpull$/.test(reqUrl.path)) {
         var util = require('util'),
                 spawn = require('child_process').spawn,
                 ls = spawn('sh', ['gitpull.sh']); // the second arg is the command
@@ -67,6 +79,8 @@ http.createServer(function (req, res) {
 
         ls.stdout.on('data', function (data) {    // register one or more handlers
             console.log('stdout: ' + data);
+            res.writeHead(404, {'Content-Type': 'text/html; charset=utf-8'});
+            res.end("Done:" + data);
         });
 
     } else {
@@ -98,8 +112,8 @@ function infuseLayout(content) {
     var layout = fs.readFileSync("../layout/layout.html").toString();
     var months = getArticleMonths();
     var links = "";
-    for(var i=0;i<months.length;++i) {
-        links += '<li><a href="/archiv/'+months[i]+'">'+months[i]+'</a></li>';
+    for (var i = 0; i < months.length; ++i) {
+        links += '<li><a href="/archiv/' + months[i] + '">' + months[i] + '</a></li>';
     }
 
     layout = layout.replace("%MENU%", links);
@@ -139,14 +153,13 @@ function getArticlesInMonth(yearMonth) {
         var year = date[0];
         var menuString = year + "-" + month;
 
-        if(menuString == yearMonth) {
-            articles.push({name:entries[i],content:wholeFile});
+        if (menuString == yearMonth) {
+            articles.push({name: entries[i], content: wholeFile});
         }
     }
 
     return articles;
 }
-
 
 
 function parseMetaData(article) {
@@ -198,7 +211,7 @@ function getLastEntries(count) {
         return a.created < b.created;
     });
 
-    data = data.slice(0,count);
+    data = data.slice(0, count);
 
     return data;
 }
@@ -280,7 +293,7 @@ function getArticle(path) {
     var informations = parseMetaData(mdData);
     layout = insertMetaData(layout, informations);
 
-    layout = layout.replace("%TITLE%", ucwords(path.substring(11,path.length-3).replace("-"," ")));
+    layout = layout.replace("%TITLE%", ucwords(path.substring(11, path.length - 3).replace("-", " ")));
 
     return layout;
 }
@@ -293,4 +306,14 @@ function getArticleContent(data) {
 function echoHTML(str, res) {
     res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
     res.end(str);
+}
+
+function getPage(path) {
+    var mdData = fs.readFileSync(path).toString();
+
+    var layout = infuseLayout(marked(mdData));
+
+    layout = layout.replace("%TITLE%", ucwords(path.substring(9, path.length - 3).replace("-", " ")));
+
+    return layout;
 }
