@@ -2,6 +2,7 @@ var http = require('http');
 var fs = require('fs');
 var marked = require('marked');
 var url = require('url');
+var cleanCSS = require('clean-css');
 
 http.createServer(function (req, res) {
     var reqUrl = url.parse(req.url);
@@ -9,8 +10,9 @@ http.createServer(function (req, res) {
 
     if (/\.(css)$/.test(reqUrl.path)) {
         getCssFile(reqUrl.path, res);
-    }
-    else if (/\/blog\//.test(path)) {
+    } else if(/\.(js)$/.test(reqUrl.path)) {
+        getJsFile(reqUrl.path, res);
+    } else if (/\/blog\//.test(path)) {
         path = path.replace('/blog', '');
         path = "../entries" + path + ".md";
 
@@ -164,12 +166,26 @@ function getCssFile(path, res) {
     res.setHeader("Vary", "Accept-Encoding");
     res.setHeader('Last-Modified', stat.mtime);
     res.writeHead(200, {'Content-Type': 'text/css; charset=utf-8'});
+    var content = fs.readFileSync(".." + filepath).toString();
+    content = cleanCSS.process(content);
+    res.write(content);
+    res.end();
+}
+
+function getJsFile(path, res) {
+    var filepath = (path + '').replace(/\.[0-9]+\.js/g, '.js');
+
+    var stat = fs.statSync(".." + filepath);
+
+    res.setHeader("Cache-Control", "public, max-age=31536000"); // 1 year
+    res.setHeader("Expires", new Date(Date.now() + 31536000000).toUTCString());
+    res.setHeader("Vary", "Accept-Encoding");
+    res.setHeader('Last-Modified', stat.mtime);
+    res.writeHead(200, {'Content-Type': 'text/css; charset=utf-8'});
 
     res.write(fs.readFileSync(".." + filepath));
     res.end();
-
 }
-
 
 function getArticle(path) {
     var mdData = fs.readFileSync(path).toString();
