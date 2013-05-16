@@ -33,14 +33,7 @@ http.createServer(function (req, res) {
             var articleSlug = lastEntries[i].name.substring(0, lastEntries[i].name.length - 3);
             var informations = parseMetaData(data);
             var entry = getRealContent(data);
-            if (informations != null) {
-                for (var k in informations) {
-                    if (informations.hasOwnProperty(k)) {
-                        var key = k.toUpperCase();
-                        entry = entry.replace("%" + key + "%", informations[k]);
-                    }
-                }
-            }
+            entry = insertMetaData(entry,informations);
             content += getExcerpt(entry, articleSlug) + "<hr>";
         }
         res.end(infuseLayout(content));
@@ -87,27 +80,6 @@ function infuseLayout(content) {
     return layout;
 }
 
-function getExcerpt(data,articleSlug) {
-    var firstdot = data.indexOf(".");
-    var excerpt;
-    if(firstdot == -1) {
-        excerpt = data;
-    } else {
-        excerpt = data.substring(0,firstdot+1);
-    }
-    excerpt += '<br><a href="/blog/' + articleSlug + '">Weiter lesen...</a>';
-    excerpt = excerpt.replace('<h1>','<h1><a href="/blog/' + articleSlug + '">');
-    excerpt = excerpt.replace('</h1>','</a></h1>');
-    console.log(excerpt);
-    return excerpt;
-}
-
-function getRealContent(data) {
-    var regex = /([^|]*)\n\|\|*/;
-    var content = marked(data.replace(regex, ''));
-    return content;
-}
-
 function parseMetaData(article) {
     var regex = /([^|]*)\n\|\|*/;
     var informations = article.match(regex);
@@ -126,7 +98,21 @@ function parseMetaData(article) {
     return data;
 }
 
-function getMetaData(file) {
+function insertMetaData(str, inf) {
+    if (inf != null) {
+        for (var k in inf) {
+            if (inf.hasOwnProperty(k)) {
+                var key = k.toUpperCase();
+                str = str.replace("%" + key + "%", inf[k]);
+            }
+        }
+    }
+
+    return str;
+
+}
+
+function getMetaDataFromFile(file) {
     var data = fs.readFileSync(file).toString();
     return parseMetaData(data);
 }
@@ -135,7 +121,7 @@ function getLastEntries(count) {
     var entries = fs.readdirSync("../entries");
     var data = [];
     for (var i = 0; i < entries.length; ++i) {
-        var metaData = getMetaData("../entries/" + entries[i]);
+        var metaData = getMetaDataFromFile("../entries/" + entries[i]);
         data.push({ created: metaData.created, path: "../entries/" + entries[i], name: entries[i] });
     }
 
@@ -144,6 +130,27 @@ function getLastEntries(count) {
     });
 
     return data;
+}
+
+
+function getExcerpt(data, articleSlug) {
+    var firstdot = data.indexOf(".");
+    var excerpt;
+    if (firstdot == -1) {
+        excerpt = data;
+    } else {
+        excerpt = data.substring(0, firstdot + 1);
+    }
+    excerpt += '<br><a href="/blog/' + articleSlug + '">Weiter lesen...</a>';
+    excerpt = excerpt.replace('<h1>', '<h1><a href="/blog/' + articleSlug + '">');
+    excerpt = excerpt.replace('</h1>', '</a></h1>');
+    return excerpt;
+}
+
+function getRealContent(data) {
+    var regex = /([^|]*)\n\|\|*/;
+    var content = marked(data.replace(regex, ''));
+    return content;
 }
 
 
@@ -165,29 +172,24 @@ function getCssFile(path, res) {
 
 
 function getArticle(path) {
-    var htmlData = fs.readFileSync("../layout/layout.html").toString();
-
     var mdData = fs.readFileSync(path).toString();
 
-    var content = getRealContent(mdData);
-    var layout = infuseLayout(content);
+    var layout = infuseLayout(getArticleContent(mdData));
 
     var informations = parseMetaData(mdData);
-    if (informations != null) {
-        for (var k in informations) {
-            if (informations.hasOwnProperty(k)) {
-                var key = k.toUpperCase();
-                layout = layout.replace("%" + key + "%", informations[k]);
-            }
-        }
-    }
+    layout = insertMetaData(layout, informations);
+
     layout = layout.replace("%TITLE%", path.substring(1));
 
     return layout;
+}
+
+function getArticleContent(data) {
+    var regex = /([^|]*)\n\|\|*/;
+    return marked(data.replace(regex, ''));
 }
 
 function echoHTML(str, res) {
     res.writeHead(200, {'Content-Type': 'text/html'});
     res.end(str);
 }
-
