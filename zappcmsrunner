@@ -1,0 +1,17 @@
+#! /bin/sh
+# /etc/init.d/zappcmsrunner
+#
+
+# Some things that run always
+#php /var/www/vhosts/sopamo.de/rehaverleihservice.de/widget/bin/push-server.php
+
+if ! ps ax | grep -v grep | grep 'push-server.php' > /dev/null
+then
+  nohup php /var/www/vhosts/sopamo.de/rehaverleihservice.de/widget/bin/push-server.php > /dev/null &
+else
+  echo "push-script is already running"
+fi
+
+# Carry out specific functions when asked to by the system
+
+exit 0
