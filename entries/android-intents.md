@@ -2,12 +2,14 @@ author:Paul Mohr, Stefan Mayer
 created:2013-05-15 23:00
 ||||||||||||||||||||||||||||||
 
-Fehlende Fehlermeldung bei Intents in Android
+Missing Error Message using Intents in Android
 ====================================
 Serializable Objects
 ----------------------------
 
-Java ist eigentlich eine Programmiersprache, die den Programmierer per Fehlermeldung über Programmierfehler extrem genau informiert. Doch es kann auch passieren, dass es gar keine Fehlermeldung gibt, obwohl sich das gesamte Programm, in unserem Fall eine Android App, aufgehangen hat. Wir haben dabei einer Activity ein IntentObjekt übergeben. Etwa so:
+Actually Java is a programming language which informs the programmer extremely verbose about programming mistakes.
+But sometimes it occurs that there is no error message being displayed, although the whole program, which in 
+our case was a android app, starts freezing. We passed an IntenObject to an activity like so:
 
     class Test implements Serializable {
         public Item[] items = { new Item() };
@@ -24,9 +26,11 @@ Java ist eigentlich eine Programmiersprache, die den Programmierer per Fehlermel
         }
     }
 
-Leider hat sich die App immer aufgehangen ohne eine Fehlermeldung zu werfen.
-Die Lösung des Problems war beim Item das Interface Serializable zu implementieren. Weil alle Objekte in putExtra Serializable implementieren müssen auch wenn diese nur in einem übergebenen Objekt als Variable vorhanden sind.
+Sadly the app started freezing without notifying us. The solution of the problem was to implement the Interface
+Serializable on all Objects being passed within the putExtra function of Intent. Even if the Object is only saved within
+an attribute of the Object being passe. 
 
-<p>Von: %AUTHOR%</p>
+
+<p>Written by: %AUTHOR%</p>
 
 %DISQUS%
