@@ -10,5 +10,5 @@ hooks
 Hooks sind ne super Sache.
 
 <p>Von: %AUTHOR%</p>
-
+<p>Von %AUTHOR%</p>
 %DISQUS%

@@ -185,7 +185,8 @@ function insertMetaData(str, inf) {
         for (var k in inf) {
             if (inf.hasOwnProperty(k)) {
                 var key = k.toUpperCase();
-                str = str.replace("%" + key + "%", inf[k]);
+                var regex = new RegExp("%" + key + "%", 'g');
+                str = str.replace(regex, inf[k]);
             }
         }
     }
@@ -225,7 +226,7 @@ function getExcerpt(data, articleSlug) {
     } else {
         excerpt = data.substring(0, firstdot + 1);
     }
-    excerpt += '<br><a href="/blog/' + articleSlug + '">Weiter lesen...</a>';
+    excerpt += '<br><a href="/blog/' + articleSlug + '">More...</a>';
     excerpt = excerpt.replace('<h1>', '<h1><a href="/blog/' + articleSlug + '">');
     excerpt = excerpt.replace('</h1>', '</a></h1>');
     return excerpt;
