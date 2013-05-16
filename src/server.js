@@ -185,7 +185,8 @@ function insertMetaData(str, inf) {
         for (var k in inf) {
             if (inf.hasOwnProperty(k)) {
                 var key = k.toUpperCase();
-                str = str.replace("%" + key + "%", inf[k]);
+                var regex = new RegExp("%" + key + "%", 'g');
+                str = str.replace(regex, inf[k]);
             }
         }
     }
