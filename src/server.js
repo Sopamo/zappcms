@@ -59,6 +59,16 @@ http.createServer(function (req, res) {
         var layout = infuseLayout(content);
         layout = layout.replace("%TITLE%","Zappcms Archiv "+date);
         res.end(layout);
+    } else if(/^\/gitpull$/.test(reqUrl.path)) {
+        var util = require('util'),
+                spawn = require('child_process').spawn,
+                ls = spawn('sh', ['gitpull.sh']); // the second arg is the command
+        // options
+
+        ls.stdout.on('data', function (data) {    // register one or more handlers
+            console.log('stdout: ' + data);
+        });
+
     } else {
         res.writeHead(404, {'Content-Type': 'text/html; charset=utf-8'});
         res.end("404, not found :(");
@@ -283,4 +293,17 @@ function getArticleContent(data) {
 function echoHTML(str, res) {
     res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
     res.end(str);
+}
+
+function cmd_exec(cmd, args, cb_stdout, cb_end) {
+    var spawn = require('child_process').spawn,
+            child = spawn(cmd, args),
+            me = this;
+    me.exit = 0;  // Send a cb to set 1 when cmd exits
+    child.stdout.on('data', function (data) {
+        cb_stdout(me, data)
+    });
+    child.stdout.on('end', function () {
+        cb_end(me)
+    });
 }
