@@ -154,9 +154,13 @@ function getArticlesInMonth(yearMonth) {
         var menuString = year + "-" + month;
 
         if (menuString == yearMonth) {
-            articles.push({name: entries[i], content: wholeFile});
+            articles.push({name: entries[i], content: wholeFile, created: datas.created});
         }
     }
+
+    articles.sort(function (a, b) {
+        return a.created < b.created;
+    });
 
     return articles;
 }
@@ -190,9 +194,7 @@ function insertMetaData(str, inf) {
             }
         }
     }
-
     return str;
-
 }
 
 function getMetaDataFromFile(file) {
