@@ -1,7 +1,7 @@
 zappcms
 =======
 
-A tiny, tiny, tiny! node.js cms on http://papaya-fiction.com
+A tiny, tiny, tiny! node.js cms, currently running on http://papaya-fiction.com
 
 
 What is zappcms?
