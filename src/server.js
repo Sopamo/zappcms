@@ -29,7 +29,19 @@ http.createServer(function (req, res) {
         res.writeHead(404, {'Content-Type': 'text/html'});
         var content = "";
         for (var i = 0; i < lastEntries.length; ++i) {
-            content += marked(fs.readFileSync(lastEntries[i].path).toString()) + "<hr>";
+            var data = fs.readFileSync(lastEntries[i].path).toString();
+            var articleSlug = lastEntries[i].name.substring(0, lastEntries[i].name.length - 3);
+            var informations = parseMetaData(data);
+            var entry = getRealContent(data);
+            if (informations != null) {
+                for (var k in informations) {
+                    if (informations.hasOwnProperty(k)) {
+                        var key = k.toUpperCase();
+                        entry = entry.replace("%" + key + "%", informations[k]);
+                    }
+                }
+            }
+            content += getExcerpt(entry, articleSlug) + "<hr>";
         }
         res.end(infuseLayout(content));
     } else {
@@ -75,6 +87,27 @@ function infuseLayout(content) {
     return layout;
 }
 
+function getExcerpt(data,articleSlug) {
+    var firstdot = data.indexOf(".");
+    var excerpt;
+    if(firstdot == -1) {
+        excerpt = data;
+    } else {
+        excerpt = data.substring(0,firstdot+1);
+    }
+    excerpt += '<br><a href="/blog/' + articleSlug + '">Weiter lesen...</a>';
+    excerpt = excerpt.replace('<h1>','<h1><a href="/blog/' + articleSlug + '">');
+    excerpt = excerpt.replace('</h1>','</a></h1>');
+    console.log(excerpt);
+    return excerpt;
+}
+
+function getRealContent(data) {
+    var regex = /([^|]*)\n\|\|*/;
+    var content = marked(data.replace(regex, ''));
+    return content;
+}
+
 function parseMetaData(article) {
     var regex = /([^|]*)\n\|\|*/;
     var informations = article.match(regex);
@@ -103,7 +136,7 @@ function getLastEntries(count) {
     var data = [];
     for (var i = 0; i < entries.length; ++i) {
         var metaData = getMetaData("../entries/" + entries[i]);
-        data.push({ created: metaData.created, path: "../entries/" + entries[i] });
+        data.push({ created: metaData.created, path: "../entries/" + entries[i], name: entries[i] });
     }
 
     data.sort(function (a, b) {
@@ -133,13 +166,11 @@ function getCssFile(path, res) {
 
 function getArticle(path) {
     var htmlData = fs.readFileSync("../layout/layout.html").toString();
-    var layout = htmlData;
 
     var mdData = fs.readFileSync(path).toString();
 
-    var regex = /([^|]*)\n\|\|*/;
-    var content = marked(mdData.replace(regex, ''));
-    layout = infuseLayout(content);
+    var content = getRealContent(mdData);
+    var layout = infuseLayout(content);
 
     var informations = parseMetaData(mdData);
     if (informations != null) {
