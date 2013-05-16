@@ -1,6 +1,8 @@
 Impressum
 =========
 
+(This imprint is in german, as the site is hosted in germany. You find my contact information below.)   
+
 Für: papaya-fiction.com
 -----------------------
 Gemäß § 28 BDSG widerspreche ich jeder kommerziellen Verwendung und Weitergabe meiner Daten.
@@ -20,6 +22,7 @@ Stuttgarterstr. 27/2
 89075 Ulm  
 Deutschland  
 Mobil: 0176/70129843  
+Email: p[punkt]mohr[at]sopamo[punkt]de  
 USt.-ID: DE284567673  
 
 Urheberschutz
