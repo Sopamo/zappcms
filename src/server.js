@@ -16,7 +16,7 @@ http.createServer(function (req, res) {
 
 
         if (!fs.existsSync(path)) {
-            res.writeHead(404, {'Conten-Type': 'text/html'});
+            res.writeHead(404, {'Conten-Type': 'text/html; charset=utf-8'});
             res.end("yolo bitch");
         } else {
             var article = getArticle(path);
@@ -26,7 +26,7 @@ http.createServer(function (req, res) {
 
     } else if (path == "/") {
         var lastEntries = getLastEntries(5);
-        res.writeHead(404, {'Content-Type': 'text/html'});
+        res.writeHead(404, {'Content-Type': 'text/html; charset=utf-8'});
         var content = "";
         for (var i = 0; i < lastEntries.length; ++i) {
             var data = fs.readFileSync(lastEntries[i].path).toString();
@@ -38,7 +38,7 @@ http.createServer(function (req, res) {
         }
         res.end(infuseLayout(content));
     } else {
-        res.writeHead(404, {'Content-Type': 'text/html'});
+        res.writeHead(404, {'Content-Type': 'text/html; charset=utf-8'});
         res.end("404, not found :(");
     }
 
@@ -163,7 +163,7 @@ function getCssFile(path, res) {
     res.setHeader("Expires", new Date(Date.now() + 31536000000).toUTCString());
     res.setHeader("Vary", "Accept-Encoding");
     res.setHeader('Last-Modified', stat.mtime);
-    res.writeHead(200, {'Content-Type': 'text/css'});
+    res.writeHead(200, {'Content-Type': 'text/css; charset=utf-8'});
 
     res.write(fs.readFileSync(".." + filepath));
     res.end();
@@ -190,6 +190,6 @@ function getArticleContent(data) {
 }
 
 function echoHTML(str, res) {
-    res.writeHead(200, {'Content-Type': 'text/html'});
+    res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
     res.end(str);
 }
