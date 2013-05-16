@@ -226,7 +226,7 @@ function getExcerpt(data, articleSlug) {
     } else {
         excerpt = data.substring(0, firstdot + 1);
     }
-    excerpt += '<br><a href="/blog/' + articleSlug + '">Weiter lesen...</a>';
+    excerpt += '<br><a href="/blog/' + articleSlug + '">More...</a>';
     excerpt = excerpt.replace('<h1>', '<h1><a href="/blog/' + articleSlug + '">');
     excerpt = excerpt.replace('</h1>', '</a></h1>');
     return excerpt;
