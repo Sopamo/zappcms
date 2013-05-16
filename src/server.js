@@ -20,23 +20,11 @@ http.createServer(function (req, res) {
 
         if (!fs.existsSync(path)) {
             res.writeHead(404, {'Conten-Type': 'text/html; charset=utf-8'});
-            res.end("404, not found :(");
+            res.end("yolo bitch");
         } else {
             var article = getArticle(path);
 
             echoHTML(article, res);
-        }
-    } else if (/^\/p\/[a-z0-9-]*$/.test(path)) {
-        path = path.replace('/p', '');
-        path = "../pages" + path + ".md";
-
-        if (!fs.existsSync(path)) {
-            res.writeHead(404, {'Conten-Type': 'text/html; charset=utf-8'});
-            res.end("404, not found :(");
-        } else {
-            var page = getPage(path);
-
-            echoHTML(page, res);
         }
     } else if (path == "/") {
         var lastEntries = getLastEntries(5);
@@ -79,8 +67,6 @@ http.createServer(function (req, res) {
 
         ls.stdout.on('data', function (data) {    // register one or more handlers
             console.log('stdout: ' + data);
-            res.writeHead(404, {'Content-Type': 'text/html; charset=utf-8'});
-            res.end("Done:" + data);
         });
 
     } else {
@@ -307,14 +293,4 @@ function getArticleContent(data) {
 function echoHTML(str, res) {
     res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
     res.end(str);
-}
-
-function getPage(path) {
-    var mdData = fs.readFileSync(path).toString();
-
-    var layout = infuseLayout(marked(mdData));
-
-    layout = layout.replace("%TITLE%", ucwords(path.substring(9, path.length - 3).replace("-", " ")));
-
-    return layout;
 }
