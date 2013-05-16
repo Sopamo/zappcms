@@ -5,6 +5,7 @@ var url = require('url');
 var cleanCSS = require('clean-css');
 
 http.createServer(function (req, res) {
+
     var reqUrl = url.parse(req.url);
     var path = reqUrl.path;
 
@@ -22,9 +23,12 @@ http.createServer(function (req, res) {
             res.writeHead(404, {'Conten-Type': 'text/html; charset=utf-8'});
             res.end("yolo bitch");
         } else {
+            var time = Date.now();
             var article = getArticle(path);
-
+            article += Date.now()-time;
             echoHTML(article, res);
+
+
         }
     } else if (path == "/") {
         var lastEntries = getLastEntries(5);
