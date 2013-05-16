@@ -3,6 +3,8 @@
     Web: http://sopamo.de
     Twitter: @Sopamo
 
+    Developer: Stefan Mayer
+
 /* SITE */
     Node.js Server
     Doctype:HTML5

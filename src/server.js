@@ -37,8 +37,11 @@ http.createServer(function (req, res) {
             var entry = getRealContent(data);
             entry = insertMetaData(entry,informations);
             content += getExcerpt(entry, articleSlug) + "<hr>";
+
         }
-        res.end(infuseLayout(content));
+        var layout = infuseLayout(content);
+        layout = layout.replace("%TITLE%","Zapcms Blog");
+        res.end(layout);
     } else if(/^\/archiv\/[0-9]{4}-[0-9]{2}$/.test(reqUrl.path)) {
         var date = reqUrl.path.substring(8);
         var articles = getArticlesInMonth(date);
@@ -53,8 +56,9 @@ http.createServer(function (req, res) {
             entry = insertMetaData(entry, informations);
             content += getExcerpt(entry, articleSlug) + "<hr>";
         }
-
-        res.end(infuseLayout(content));
+        var layout = infuseLayout(content);
+        layout = layout.replace("%TITLE%","Zapcms Archiv "+date);
+        res.end(layout);
     } else {
         res.writeHead(404, {'Content-Type': 'text/html; charset=utf-8'});
         res.end("404, not found :(");
@@ -266,7 +270,7 @@ function getArticle(path) {
     var informations = parseMetaData(mdData);
     layout = insertMetaData(layout, informations);
 
-    layout = layout.replace("%TITLE%", path.substring(1));
+    layout = layout.replace("%TITLE%", ucwords(path.substring(11,path.length-3).replace("-"," ")));
 
     return layout;
 }
