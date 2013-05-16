@@ -7,3 +7,7 @@ GEILER SCHEI
 
 hooks
 ------
+
+
+
+<p>Von: %AUTHOR%</p>

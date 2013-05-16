@@ -26,12 +26,16 @@ http.createServer(function (req, res) {
 
     } else if (path == "/") {
         var lastEntries = getLastEntries(5);
-        res.writeHead(404, {'Content-Type': 'text/html'});
+        res.writeHead(200, {'Content-Type': 'text/html'});
         var content = "";
+
         for (var i = 0; i < lastEntries.length; ++i) {
-            content += marked(fs.readFileSync(lastEntries[i].path).toString()) + "<hr>";
+            var data = fs.readFileSync(lastEntries[i].path).toString();
+            content += getArticleContent(data) + "<hr>";
+            content = insertMetaData(content,parseMetaData(data));
         }
-        res.end(infuseLayout(content));
+        content = infuseLayout(content);
+        res.end(content);
     } else {
         res.writeHead(404, {'Content-Type': 'text/html'});
         res.end("404, not found :(");
@@ -93,7 +97,21 @@ function parseMetaData(article) {
     return data;
 }
 
-function getMetaData(file) {
+function insertMetaData(str, inf) {
+    if (inf != null) {
+        for (var k in inf) {
+            if (inf.hasOwnProperty(k)) {
+                var key = k.toUpperCase();
+                str = str.replace("%" + key + "%", inf[k]);
+            }
+        }
+    }
+
+    return str;
+
+}
+
+function getMetaDataFromFile(file) {
     var data = fs.readFileSync(file).toString();
     return parseMetaData(data);
 }
@@ -102,7 +120,7 @@ function getLastEntries(count) {
     var entries = fs.readdirSync("../entries");
     var data = [];
     for (var i = 0; i < entries.length; ++i) {
-        var metaData = getMetaData("../entries/" + entries[i]);
+        var metaData = getMetaDataFromFile("../entries/" + entries[i]);
         data.push({ created: metaData.created, path: "../entries/" + entries[i] });
     }
 
@@ -132,27 +150,21 @@ function getCssFile(path, res) {
 
 
 function getArticle(path) {
-    var htmlData = fs.readFileSync("../layout/layout.html").toString();
-    var layout = htmlData;
-
     var mdData = fs.readFileSync(path).toString();
 
-    var regex = /([^|]*)\n\|\|*/;
-    var content = marked(mdData.replace(regex, ''));
-    layout = infuseLayout(content);
+    var layout = infuseLayout(getArticleContent(mdData));
 
     var informations = parseMetaData(mdData);
-    if (informations != null) {
-        for (var k in informations) {
-            if (informations.hasOwnProperty(k)) {
-                var key = k.toUpperCase();
-                layout = layout.replace("%" + key + "%", informations[k]);
-            }
-        }
-    }
+    layout = insertMetaData(layout, informations);
+
     layout = layout.replace("%TITLE%", path.substring(1));
 
     return layout;
+}
+
+function getArticleContent(data) {
+    var regex = /([^|]*)\n\|\|*/;
+    return marked(data.replace(regex, ''));
 }
 
 function echoHTML(str, res) {
