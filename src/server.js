@@ -20,11 +20,23 @@ http.createServer(function (req, res) {
 
         if (!fs.existsSync(path)) {
             res.writeHead(404, {'Conten-Type': 'text/html; charset=utf-8'});
-            res.end("yolo bitch");
+            res.end("404, not found :(");
         } else {
             var article = getArticle(path);
 
             echoHTML(article, res);
+        }
+    } else if (/^\/p\/[a-z0-9-]*$/.test(path)) {
+        path = path.replace('/p', '');
+        path = "../pages" + path + ".md";
+
+        if (!fs.existsSync(path)) {
+            res.writeHead(404, {'Conten-Type': 'text/html; charset=utf-8'});
+            res.end("404, not found :(");
+        } else {
+            var page = getPage(path);
+
+            echoHTML(page, res);
         }
     } else if (path == "/") {
         var lastEntries = getLastEntries(5);
@@ -67,6 +79,8 @@ http.createServer(function (req, res) {
 
         ls.stdout.on('data', function (data) {    // register one or more handlers
             console.log('stdout: ' + data);
+            res.writeHead(404, {'Content-Type': 'text/html; charset=utf-8'});
+            res.end("Done:" + data);
         });
 
     } else {
@@ -295,15 +309,12 @@ function echoHTML(str, res) {
     res.end(str);
 }
 
-function cmd_exec(cmd, args, cb_stdout, cb_end) {
-    var spawn = require('child_process').spawn,
-            child = spawn(cmd, args),
-            me = this;
-    me.exit = 0;  // Send a cb to set 1 when cmd exits
-    child.stdout.on('data', function (data) {
-        cb_stdout(me, data)
-    });
-    child.stdout.on('end', function () {
-        cb_end(me)
-    });
+function getPage(path) {
+    var mdData = fs.readFileSync(path).toString();
+
+    var layout = infuseLayout(marked(mdData));
+
+    layout = layout.replace("%TITLE%", ucwords(path.substring(9, path.length - 3).replace("-", " ")));
+
+    return layout;
 }
