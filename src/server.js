@@ -181,7 +181,7 @@ function getJsFile(path, res) {
     res.setHeader("Expires", new Date(Date.now() + 31536000000).toUTCString());
     res.setHeader("Vary", "Accept-Encoding");
     res.setHeader('Last-Modified', stat.mtime);
-    res.writeHead(200, {'Content-Type': 'text/css; charset=utf-8'});
+    res.writeHead(200, {'Content-Type': 'text/javascript; charset=utf-8'});
 
     res.write(fs.readFileSync(".." + filepath));
     res.end();
