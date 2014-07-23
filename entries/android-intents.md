@@ -26,7 +26,7 @@ our case was a android app, starts freezing. We passed an IntenObject to an acti
         }
     }
 
-Sadly the app started freezing without notifying us. The solution of the problem was to implement the Interface
+Sadly the app started freezing without notifying us :O The solution of the problem was to implement the Interface
 Serializable on all Objects being passed within the putExtra function of Intent. Even if the Object is only saved within
 an attribute of the Object being passe. 
 
